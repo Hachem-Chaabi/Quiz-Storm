@@ -1,0 +1,168 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+  binaryTargets = ["native", "debian-openssl-3.0.x", "linux-musl", "linux-musl-openssl-3.0.x"] 
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  PLAYER
+  HOST
+  ADMIN
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+}
+
+enum QuizType {
+  PUBLIC
+  PRIVATE
+}
+
+enum SessionStatus {
+  WAITING
+  STARTED
+  FINISHED
+}
+
+model AuthSession {
+  id              String   @id @default(uuid())
+  userId          String
+  createdAt       DateTime @default(now())
+  expiresAt       DateTime
+}
+
+model User {
+  id                    String      @id @default(uuid())
+  username              String      @unique
+  email                 String      @unique
+  password              String
+  role                  Role        @default(PLAYER)
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  createdQuizzes        Quiz[]
+  hostedSessions        QuizSession[]
+  participations        SessionParticipant[]
+  leaderboardEntries    QuizLeaderboard[]
+  invitations           SessionInvitation[]
+}
+
+model Quiz {
+  id                      String            @id @default(uuid())
+  title                   String
+  description             String?
+  type                    QuizType          @default(PRIVATE)
+  categoryId              String
+  createdById             String
+
+  category                QuizCategory      @relation(fields: [categoryId], references: [id])
+  createdBy               User              @relation(fields: [createdById], references: [id])
+  questions               QuizQuestion[]
+  sessions                QuizSession[]
+  leaderboardEntries      QuizLeaderboard[]
+}
+
+model QuizQuestion {
+  id                String                    @id @default(uuid())
+  text              String
+  type              QuestionType
+  questionScore     Int
+  timeLimit         Int
+  order             Int?
+  quizId            String
+
+  quiz              Quiz                      @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  options           QuestionAnswerOption[]
+  responses         QuestionResponse[]
+}
+
+model QuestionAnswerOption {
+  id              String                @id @default(uuid())
+  text            String
+  isCorrect       Boolean
+  questionId      String
+
+  question        QuizQuestion          @relation(fields: [questionId], references: [id])
+  responses       QuestionResponse[]
+}
+
+model QuizSession {
+  id           String         @id @default(uuid())
+  code         String         @unique
+  quizId       String
+  hostId       String
+  status       SessionStatus  @default(WAITING)
+  startedAt    DateTime?
+  endedAt      DateTime?
+
+  quiz         Quiz           @relation(fields: [quizId], references: [id])
+  host         User           @relation(fields: [hostId], references: [id])
+  participants SessionParticipant[]
+  invitations  SessionInvitation[]
+}
+
+model SessionParticipant {
+  id         String    @id @default(uuid())
+  userId     String
+  sessionId  String
+  score      Int       @default(0)
+  joinedAt   DateTime  @default(now())
+
+  user       User      @relation(fields: [userId], references: [id])
+  session    QuizSession   @relation(fields: [sessionId], references: [id])
+  responses  QuestionResponse[]
+
+  @@unique([userId, sessionId])
+}
+
+model QuestionResponse {
+  id                  String                    @id @default(uuid())
+  participantId       String
+  questionId          String
+  selectedId          String?
+  submittedAt         DateTime                  @default(now())
+  isCorrect           Boolean
+
+  participant         SessionParticipant        @relation(fields: [participantId], references: [id])
+  question            QuizQuestion              @relation(fields: [questionId], references: [id])
+  selectedOption      QuestionAnswerOption?     @relation(fields: [selectedId], references: [id])
+}
+
+model QuizCategory {
+  id      String  @id @default(uuid())
+  name    String  @unique
+  quizzes Quiz[]
+}
+
+model QuizLeaderboard {
+  id       String  @id @default(uuid())
+  userId   String
+  quizId   String
+  score    Int
+  accuracy Float
+  attempts Int
+
+  user     User    @relation(fields: [userId], references: [id])
+  quiz     Quiz    @relation(fields: [quizId], references: [id])
+}
+
+model SessionInvitation {
+  id            String       @id @default(uuid())
+  sessionId     String
+  email         String
+  userId        String?                          // Nullable until accepted
+  accepted      Boolean      @default(false)
+  invitedAt     DateTime     @default(now())
+
+  session       QuizSession  @relation(fields: [sessionId], references: [id])
+  user          User?        @relation(fields: [userId], references: [id])
+
+  @@unique([sessionId, email])
+}
