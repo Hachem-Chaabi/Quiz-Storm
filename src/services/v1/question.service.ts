@@ -14,7 +14,6 @@ const getAll = async (quizId: string, name: string, page: number, pageSize: numb
     docs,
     totalDocs,
     limit,
-    page: currentPage,
     totalPages,
     hasNextPage,
     hasPrevPage,
@@ -22,7 +21,7 @@ const getAll = async (quizId: string, name: string, page: number, pageSize: numb
 
   const meta = {
     totalDocs,
-    page: currentPage,
+    page,
     limit,
     totalPages,
     hasNextPage,

@@ -1,17 +1,19 @@
 import { QuizSession } from '../../../generated/prisma';
+import { pagingObj } from '../../types/pagination';
 import { prisma } from '../config';
 
-type PagingObj = {
-  limit?: number;
-  page?: number;
+type ConditionObj = {
+  [K in keyof QuizSession]?: QuizSession[K];
 };
 
 type QueryObj = {
-  [key: string]: any;
+  search?: string;
+  sort?: string;
+  order?: 'asc' | 'desc';
 };
 
 // Get all with pagination, filtering, sorting
-const getAll = async (paging: PagingObj = {}, query: QueryObj = {}) => {
+const getAll = async (paging: pagingObj, query: QueryObj) => {
   const page = paging.page || 1;
   const limit = paging.limit || 10;
   const skip = (page - 1) * limit;
@@ -55,14 +57,14 @@ const getById = async (id: string, select: object = {}) => {
   });
 };
 
-const getByQuery = async (where: QueryObj, select: object = {}) => {
+const getByQuery = async (where: ConditionObj, select: object = {}) => {
   return prisma.quizSession.findMany({
     where,
     select: Object.keys(select).length ? select : undefined,
   });
 };
 
-const getOneByQuery = async (where: QueryObj, select: object = {}) => {
+const getOneByQuery = async (where: ConditionObj, select: object = {}) => {
   return prisma.quizSession.findFirst({
     where,
     select: Object.keys(select).length ? select : undefined,

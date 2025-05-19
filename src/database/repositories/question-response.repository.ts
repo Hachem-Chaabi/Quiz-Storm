@@ -1,17 +1,19 @@
 import { QuestionResponse } from '../../../generated/prisma';
+import { pagingObj } from '../../types/pagination';
 import { prisma } from '../config';
 
-type PagingObj = {
-  limit?: number;
-  page?: number;
+type ConditionObj = {
+  [K in keyof QuestionResponse]?: QuestionResponse[K];
 };
 
 type QueryObj = {
-  [key: string]: any;
+  search?: string;
+  sort?: string;
+  order?: 'asc' | 'desc';
 };
 
 // Get all with pagination, filtering, sorting
-const getAll = async (condition: QueryObj, paging: PagingObj = {}, query: QueryObj = {}) => {
+const getAll = async (condition: ConditionObj, paging: pagingObj, query: QueryObj) => {
   const page = paging.page || 1;
   const limit = paging.limit || 10;
   const skip = (page - 1) * limit;
@@ -33,7 +35,7 @@ const getAll = async (condition: QueryObj, paging: PagingObj = {}, query: QueryO
       where,
       skip,
       take: limit,
-      orderBy: query.sort ? { [query.sort]: query.order === 'asc' ? 'asc' : 'desc' } : undefined,
+      orderBy: query.sort ? { [query.sort]: query.order } : undefined,
     }),
     prisma.questionResponse.count({ where }),
   ]);
@@ -56,14 +58,14 @@ const getById = async (id: string, select: object = {}) => {
   });
 };
 
-const getByQuery = async (where: QueryObj, select: object = {}) => {
+const getByQuery = async (where: ConditionObj, select: object = {}) => {
   return prisma.questionResponse.findMany({
     where,
     select: Object.keys(select).length ? select : undefined,
   });
 };
 
-const getOneByQuery = async (where: QueryObj, select: object = {}) => {
+const getOneByQuery = async (where: ConditionObj, select: object = {}) => {
   return prisma.questionResponse.findFirst({
     where,
     select: Object.keys(select).length ? select : undefined,

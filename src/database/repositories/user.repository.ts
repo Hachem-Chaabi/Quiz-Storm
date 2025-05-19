@@ -1,5 +1,4 @@
 import { User } from '../../../generated/prisma';
-import { DAY_IN_MILLISECOND } from '../../constants/constants';
 import { prisma } from '../config';
 
 const getAll = async () => {
@@ -57,5 +56,5 @@ export default {
   getOneByQuery,
   create,
   edit,
-  remove
+  remove,
 };

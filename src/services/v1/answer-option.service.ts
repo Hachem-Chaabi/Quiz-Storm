@@ -10,19 +10,12 @@ const getAll = async (questionId: string, name: string, page: number, pageSize: 
     limit: pageSize,
   };
 
-  const {
-    docs,
-    totalDocs,
-    limit,
-    page: currentPage,
-    totalPages,
-    hasNextPage,
-    hasPrevPage,
-  } = await AnswerOptionRepository.getAll({ questionId }, options, { search: name });
+  const { docs, totalDocs, limit, totalPages, hasNextPage, hasPrevPage } =
+    await AnswerOptionRepository.getAll({ questionId }, options, { search: name });
 
   const meta = {
     totalDocs,
-    page: currentPage,
+    page,
     limit,
     totalPages,
     hasNextPage,

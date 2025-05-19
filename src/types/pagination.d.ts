@@ -1,4 +1,4 @@
-type pagingObj = {
-  limit: number;
-  page: number;
+export type pagingObj = {
+  limit?: number;
+  page?: number;
 };

@@ -1,18 +1,19 @@
-import { get } from 'config';
 import { QuizLeaderboard } from '../../../generated/prisma';
+import { pagingObj } from '../../types/pagination';
 import { prisma } from '../config';
 
-type PagingObj = {
-  limit?: number;
-  page?: number;
+type ConditionObj = {
+  [K in keyof QuizLeaderboard]?: QuizLeaderboard[K];
 };
 
 type QueryObj = {
-  [key: string]: any;
+  search?: string;
+  sort?: string;
+  order?: 'asc' | 'desc';
 };
 
 // Get all with pagination, filtering, sorting
-const getAll = async (paging: PagingObj = {}, query: QueryObj = {}) => {
+const getAll = async (paging: pagingObj, query: QueryObj) => {
   const page = paging.page || 1;
   const limit = paging.limit || 10;
   const skip = (page - 1) * limit;
@@ -33,7 +34,7 @@ const getAll = async (paging: PagingObj = {}, query: QueryObj = {}) => {
       where,
       skip,
       take: limit,
-      orderBy: query.sort ? { [query.sort]: query.order === 'asc' ? 'asc' : 'desc' } : undefined,
+      orderBy: query.sort ? { [query.sort]: query.order } : undefined,
     }),
     prisma.quizLeaderboard.count({ where }),
   ]);
@@ -49,11 +50,7 @@ const getAll = async (paging: PagingObj = {}, query: QueryObj = {}) => {
   };
 };
 
-const getAllByQuizId = async (
-  condition: QueryObj,
-  paging: PagingObj = {},
-  query: QueryObj = {},
-) => {
+const getAllByQuizId = async (condition: ConditionObj, paging: pagingObj, query: QueryObj = {}) => {
   const page = paging.page || 1;
   const limit = paging.limit || 10;
   const skip = (page - 1) * limit;
@@ -98,14 +95,14 @@ const getById = async (id: string, select: object = {}) => {
   });
 };
 
-const getByQuery = async (where: QueryObj, select: object = {}) => {
+const getByQuery = async (where: ConditionObj, select: object = {}) => {
   return prisma.quizLeaderboard.findMany({
     where,
     select: Object.keys(select).length ? select : undefined,
   });
 };
 
-const getOneByQuery = async (where: QueryObj, select: object = {}) => {
+const getOneByQuery = async (where: ConditionObj, select: object = {}) => {
   return prisma.quizLeaderboard.findFirst({
     where,
     select: Object.keys(select).length ? select : undefined,

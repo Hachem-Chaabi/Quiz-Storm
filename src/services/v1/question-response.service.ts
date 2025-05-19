@@ -22,7 +22,6 @@ const getAll = async (
     docs,
     totalDocs,
     limit,
-    page: currentPage,
     totalPages,
     hasNextPage,
     hasPrevPage,
@@ -30,7 +29,7 @@ const getAll = async (
 
   const meta = {
     totalDocs,
-    page: currentPage,
+    page,
     limit,
     totalPages,
     hasNextPage,

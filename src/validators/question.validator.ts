@@ -1,6 +1,7 @@
 import { z } from 'zod';
+import { QuizQuestion } from '../../generated/prisma';
 
-export const questionSchema = z.object({
+export const questionSchema: z.ZodType<Partial<QuizQuestion>> = z.object({
   text: z.string().min(3),
   type: z.enum(['MULTIPLE_CHOICE', 'TRUE_FALSE']),
   questionScore: z.number(),
@@ -8,7 +9,7 @@ export const questionSchema = z.object({
   order: z.number(),
 });
 
-export const getQuestionByOrderSchema = z.object({
+export const getQuestionByOrderSchema: z.ZodType<Partial<QuizQuestion>> = z.object({
   order: z.number(),
 });
 
